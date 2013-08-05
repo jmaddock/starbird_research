@@ -57,11 +57,11 @@ def hashtag_frequency(cur):
 	count = collections.Counter()
 	#stopwords = "a,about,across,after,all,almost,also,am,among,an,and,any,are,as,at,be,because,been,but,by,can,cannot,did,do,does,either,else,ever,every,for,from,get,got,had,has,have,he,her,hers,him,his,how,however,i,if,in,into,is,it,its,just,least,let,like,likely,may,me,might,most,must,my,neither,no,nor,not,of,off,often,on,only,or,other,our,own,rather,said,say,says,she,since,so,some,than,that,the,their,them,then,there,these,they,this,tis,to,too,twas,us,wants,was,we,were,what,when,where,which,while,who,whom,why,will,with,would,yet,you,your,yesterday,today".split(',')
 
-	cur.execute("select text from tweets where text like '%@%'")
+	cur.execute("select text from tweets where text like '%#%'")
 	print 'query done'
 	for (i,row) in enumerate(cur.fetchall()):
 		s = row[0].split()
-		result = [x.lower() for x in s if x.find('@') > -1]
+		result = [x.lower().strip(twitter_punct) for x in s if (x.find('#') > -1 and len(x.strip(twitter_punct)) > 2)]
 			#if x in stopwords:
 			#	s.remove(x)
 		count.update(result)
@@ -87,7 +87,7 @@ def hashtag_histogram(cur):
 		result = [x.lower().strip(twitter_punct) for x in s if (x.find('#') > -1 and len(x) > 2)]
 		count.update(result)
 		if not ('RT @' or 'via @' or '\"@') in s:
-			unique_result = [z.lower().strip(twitter_punct) for z in s if (z.find('#') > -1 and len(z) > 2)]
+			unique_result = [z.lower().strip(twitter_punct) for z in s if (z.find('#') > -1 and len(z.strip(twitter_punct)) > 2)]
 			print unique_result
 			print row
 			unique_count.update(unique_result)
@@ -132,7 +132,7 @@ def unique_author_hashtag_frequency(cur):
 
 # get time series data for a particular hashtag
 def hashtag_frequency_over_time(cur):
-	tag = "#tgdn"
+	tag = "#falseflag"
 
 	title = "data/%s_over_time.csv" % tag
 	f = open(title, 'w')	#create new csv
@@ -140,10 +140,12 @@ def hashtag_frequency_over_time(cur):
 	print tag
 	for i in range(15,23):		#15-23 (day)
 		for j in range(0,24):	#0-24 (hour)
-			dateStart = '2013-04-%02d %02d'  % (i,j)
+			dateStart = '2013-04-%02d %02d:00:00'  % (i,j)
+			dateEnd = '2013-04-%02d %02d:59:59'  % (i,j)
 			print "time: %s" % dateStart
 			print "tag: " + tag
-			cur.execute("select count(*) from tweets where (text like '%" + tag + "%' and time like '" + dateStart + "%')")
+			#print "query: select count(*) from tweets where (text like '%" + tag + "%' and time between '" + dateStart + "' and '" + dateEnd + "')"
+			cur.execute("select count(*) from tweets where (text like '%" + tag + "%' and time between '" + dateStart + "' and '" + dateEnd + "')")
 			for row in cur.fetchall():
 				result = '"%s",%d\n' % (dateStart,row[0])
 				f.write(result)
@@ -159,7 +161,7 @@ def top_hashtag_frequency_over_time(cur, tag):
 	cur.execute("select text from tweets where text like '%#%'")
 	for (i,row) in enumerate(cur.fetchall()):
 		s = row[0].split()
-		result = [x.lower() for x in s if x.find('#') > -1]
+		result = [x.lower().strip(twitter_punct) for x in s if (x.find('#') > -1 and len(x) > 2)]
 			#if x in stopwords:
 			#	s.remove(x)
 		count.update(result)
@@ -310,7 +312,7 @@ def hashtag_network(cur):
 			f.write(result)	 
 
 def single_node_network(cur):
-	node = "#tcot"
+	node = "#falseflag"
 	title = "data/%s_node_network.csv" % node
 	f = open(title, 'w')	#create new csv
 	count = collections.Counter()
