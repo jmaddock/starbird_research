@@ -13,7 +13,7 @@ twitter_punct = punctuation.replace('#','')
 
 # calculate the number of tweets for each hour and write to a .csv
 def tweets_vs_time(cur):
-	f = open('data.csv', 'w')	#create new csv
+	f = open('data/data.csv', 'w')	#create new csv
 	f.write('time,count\n')
 
 	for i in range(15,23):
@@ -30,7 +30,7 @@ def tweets_vs_time(cur):
  
 #calculate most common words
 def word_frequency(cur):
-	f = open('word_frequency.csv', 'w')	#create new csv
+	f = open('data/word_frequency.csv', 'w')	#create new csv
 	f.write('word,count\n')
 	count = collections.Counter()
 	stopwords = "a,about,across,after,all,almost,also,am,among,an,and,any,are,as,at,be,because,been,but,by,can,cannot,did,do,does,either,else,ever,every,for,from,get,got,had,has,have,he,her,hers,him,his,how,however,i,if,in,into,is,it,its,just,least,let,like,likely,may,me,might,most,must,my,neither,no,nor,not,of,off,often,on,only,or,other,our,own,rather,said,say,says,she,since,so,some,than,that,the,their,them,then,there,these,they,this,tis,to,too,twas,us,wants,was,we,were,what,when,where,which,while,who,whom,why,will,with,would,yet,you,your,yesterday,today".split(',')
@@ -52,7 +52,7 @@ def word_frequency(cur):
 
 #calculate most common hashtags or mentions
 def hashtag_frequency(cur):
-	f = open('attag_frequency.csv', 'w')	#create new csv
+	f = open('data/attag_frequency.csv', 'w')	#create new csv
 	f.write('user,count\n')
 	count = collections.Counter()
 	#stopwords = "a,about,across,after,all,almost,also,am,among,an,and,any,are,as,at,be,because,been,but,by,can,cannot,did,do,does,either,else,ever,every,for,from,get,got,had,has,have,he,her,hers,him,his,how,however,i,if,in,into,is,it,its,just,least,let,like,likely,may,me,might,most,must,my,neither,no,nor,not,of,off,often,on,only,or,other,our,own,rather,said,say,says,she,since,so,some,than,that,the,their,them,then,there,these,they,this,tis,to,too,twas,us,wants,was,we,were,what,when,where,which,while,who,whom,why,will,with,would,yet,you,your,yesterday,today".split(',')
@@ -73,7 +73,7 @@ def hashtag_frequency(cur):
 
 #calculate most common unique hashtags (not retweeted, filtered with RT)
 def hashtag_histogram(cur):
-	f = open('hashtag_histogram.csv', 'w')	#create new csv
+	f = open('data/hashtag_histogram.csv', 'w')	#create new csv
 	f.write('hashtag,number of tweets,number of unique tweets,number of unique authors\n')
 	count = collections.Counter()
 	unique_count = collections.Counter()
@@ -104,7 +104,7 @@ def hashtag_histogram(cur):
 
 #most common hashtags, but by unique author and without retweets
 def unique_author_hashtag_frequency(cur):
-	f = open('unique_author_hashtag_frequency.csv', 'w')	#create new csv
+	f = open('data/unique_author_hashtag_frequency.csv', 'w')	#create new csv
 	f.write('hashtag,number of authors\n')
 	authors = {}
 	#count = collections.Counter()
@@ -134,7 +134,7 @@ def unique_author_hashtag_frequency(cur):
 def hashtag_frequency_over_time(cur):
 	tag = "#tgdn"
 
-	title = "%s_over_time.csv" % tag
+	title = "data/%s_over_time.csv" % tag
 	f = open(title, 'w')	#create new csv
 	f.write('time,%s\n' % tag) 
 	print tag
@@ -151,7 +151,7 @@ def hashtag_frequency_over_time(cur):
 #calculate hashtag use over time
 #TODO: output formatting could use work
 def top_hashtag_frequency_over_time(cur, tag):
-	f = open('hashtag_frequency_over_time.csv', 'w')	#create new csv
+	f = open('data/hashtag_frequency_over_time.csv', 'w')	#create new csv
 	f.write('hashtag,time,count\n')
 	count = collections.Counter()
 	#stopwords = "a,about,across,after,all,almost,also,am,among,an,and,any,are,as,at,be,because,been,but,by,can,cannot,did,do,does,either,else,ever,every,for,from,get,got,had,has,have,he,her,hers,him,his,how,however,i,if,in,into,is,it,its,just,least,let,like,likely,may,me,might,most,must,my,neither,no,nor,not,of,off,often,on,only,or,other,our,own,rather,said,say,says,she,since,so,some,than,that,the,their,them,then,there,these,they,this,tis,to,too,twas,us,wants,was,we,were,what,when,where,which,while,who,whom,why,will,with,would,yet,you,your,yesterday,today".split(',')
@@ -179,7 +179,7 @@ def top_hashtag_frequency_over_time(cur, tag):
 
 #ignores mentions in retweets and multiple mentions by the same author
 def unique_mention_frequency(cur):
-	f = open('unique_mention_frequency.csv', 'w')	#create new csv
+	f = open('data/unique_mention_frequency.csv', 'w')	#create new csv
 	f.write('hashtag,number of unique mentions\n')
 	authors = {}
 	#count = collections.Counter()
@@ -206,7 +206,7 @@ def unique_mention_frequency(cur):
 		f.write(result)	
 
 def place(cur):
-	f = open('place.csv', 'w')	#create new csv
+	f = open('data/place.csv', 'w')	#create new csv
 	f.write('none,latlong,place,both\n')
 	count = collections.Counter({'none':0,'latlong':0,'place':0,'both':0})
 
@@ -226,7 +226,7 @@ def place(cur):
 
 #most common places tweets are comming from
 def place_frequency(cur):
-	f = open('place_frequency.csv', 'w')	#create new csv
+	f = open('data/place_frequency.csv', 'w')	#create new csv
 	f.write('place,total tweets,tweets from unique users\n')
 	count = collections.Counter()
 	#stopwords = "a,about,across,after,all,almost,also,am,among,an,and,any,are,as,at,be,because,been,but,by,can,cannot,did,do,does,either,else,ever,every,for,from,get,got,had,has,have,he,her,hers,him,his,how,however,i,if,in,into,is,it,its,just,least,let,like,likely,may,me,might,most,must,my,neither,no,nor,not,of,off,often,on,only,or,other,our,own,rather,said,say,says,she,since,so,some,than,that,the,their,them,then,there,these,they,this,tis,to,too,twas,us,wants,was,we,were,what,when,where,which,while,who,whom,why,will,with,would,yet,you,your,yesterday,today".split(',')
@@ -246,7 +246,7 @@ def place_frequency(cur):
 		f.write(result)
 
 def unique_place_frequency(cur):
-	f = open('unique_place_frequency.csv', 'w')	#create new csv
+	f = open('data/unique_place_frequency.csv', 'w')	#create new csv
 	f.write('place,state,tweets from unique users\n')
 	authors = {}
 	#stopwords = "a,about,across,after,all,almost,also,am,among,an,and,any,are,as,at,be,because,been,but,by,can,cannot,did,do,does,either,else,ever,every,for,from,get,got,had,has,have,he,her,hers,him,his,how,however,i,if,in,into,is,it,its,just,least,let,like,likely,may,me,might,most,must,my,neither,no,nor,not,of,off,often,on,only,or,other,our,own,rather,said,say,says,she,since,so,some,than,that,the,their,them,then,there,these,they,this,tis,to,too,twas,us,wants,was,we,were,what,when,where,which,while,who,whom,why,will,with,would,yet,you,your,yesterday,today".split(',')
@@ -274,7 +274,7 @@ def unique_place_frequency(cur):
 
 #creates a network of hashtags used together, listing nodes (hashtag,count) and edges (hashtag,to-hashtag,count)
 def hashtag_network(cur):
-	f = open('hashtag_network.csv', 'w')	#create new csv
+	f = open('data/hashtag_network.csv', 'w')	#create new csv
 	f.write('NODES\n')
 	count = collections.Counter()
 	#stopwords = "a,about,across,after,all,almost,also,am,among,an,and,any,are,as,at,be,because,been,but,by,can,cannot,did,do,does,either,else,ever,every,for,from,get,got,had,has,have,he,her,hers,him,his,how,however,i,if,in,into,is,it,its,just,least,let,like,likely,may,me,might,most,must,my,neither,no,nor,not,of,off,often,on,only,or,other,our,own,rather,said,say,says,she,since,so,some,than,that,the,their,them,then,there,these,they,this,tis,to,too,twas,us,wants,was,we,were,what,when,where,which,while,who,whom,why,will,with,would,yet,you,your,yesterday,today".split(',')
@@ -311,7 +311,7 @@ def hashtag_network(cur):
 
 def single_node_network(cur):
 	node = "#tcot"
-	title = "%s_node_network.csv" % node
+	title = "data/%s_node_network.csv" % node
 	f = open(title, 'w')	#create new csv
 	count = collections.Counter()
 	#stopwords = "a,about,across,after,all,almost,also,am,among,an,and,any,are,as,at,be,because,been,but,by,can,cannot,did,do,does,either,else,ever,every,for,from,get,got,had,has,have,he,her,hers,him,his,how,however,i,if,in,into,is,it,its,just,least,let,like,likely,may,me,might,most,must,my,neither,no,nor,not,of,off,often,on,only,or,other,our,own,rather,said,say,says,she,since,so,some,than,that,the,their,them,then,there,these,they,this,tis,to,too,twas,us,wants,was,we,were,what,when,where,which,while,who,whom,why,will,with,would,yet,you,your,yesterday,today".split(',')
