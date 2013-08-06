@@ -80,13 +80,13 @@ def hashtag_histogram(cur):
 	authors = {}
 	#stopwords = "a,about,across,after,all,almost,also,am,among,an,and,any,are,as,at,be,because,been,but,by,can,cannot,did,do,does,either,else,ever,every,for,from,get,got,had,has,have,he,her,hers,him,his,how,however,i,if,in,into,is,it,its,just,least,let,like,likely,may,me,might,most,must,my,neither,no,nor,not,of,off,often,on,only,or,other,our,own,rather,said,say,says,she,since,so,some,than,that,the,their,them,then,there,these,they,this,tis,to,too,twas,us,wants,was,we,were,what,when,where,which,while,who,whom,why,will,with,would,yet,you,your,yesterday,today".split(',')
 
-	cur.execute("select text,author from tweets where text like '%#%'")
+	cur.execute("select text,author from tweets where text like '%#%' limit 10000")
 	print 'query done'
 	for (i,row) in enumerate(cur.fetchall()):
 		s = row[0].split()
-		result = [x.lower().strip(twitter_punct) for x in s if (x.find('#') > -1 and len(x) > 2)]
+		result = [x.lower().strip(twitter_punct) for x in s if (x.find('#') > -1 and len(x.strip(twitter_punct)) > 2)]
 		count.update(result)
-		if not ('RT @' or 'via @' or '\"@') in s:
+		if not ('RT' or 'via' or '\"@') in s:
 			unique_result = [z.lower().strip(twitter_punct) for z in s if (z.find('#') > -1 and len(z.strip(twitter_punct)) > 2)]
 			print unique_result
 			print row
@@ -99,7 +99,11 @@ def hashtag_histogram(cur):
 		print 'row: %d' % i
 
 	for x in count.most_common(1000):
-		result = '"%s","%s","%s","%s",\n' % (x[0],x[1],unique_count[x[0]],len(authors[x[0]])) #TODO: get count of item from unique counter
+		result = '"%s","%s","%s",' % (x[0],x[1],unique_count[x[0]]) #TODO: get count of item from unique counter
+		if x[0] in authors:
+			result += '"%s"\n' % len(authors[x[0]])
+		else:
+			result += '0\n'
 		f.write(result)	
 
 #most common hashtags, but by unique author and without retweets
@@ -338,4 +342,4 @@ def single_node_network(cur):
 
 
 if __name__ == "__main__":
-    single_node_network(cur)
+    hashtag_histogram(cur)
