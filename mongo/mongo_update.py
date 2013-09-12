@@ -1,7 +1,5 @@
 import MySQLdb
 from pymongo import MongoClient
-from datetime import datetime
-import counter,re
 
 #connect to mongo db
 client = MongoClient()
@@ -13,10 +11,15 @@ tweets = mongo_db.tweets
 sql_db = MySQLdb.connect(host="localhost",
 					 user="root",
 					 passwd="",
-					 db="girl_running")
+			                 db="craft_seals")
 sql_cursor = sql_db.cursor()
 
+written_ids = open('written_ids_seals_craft.txt','w')
 #sql db query
-sql_cursor.execute("select id,code from tweets_girl_running limit 10")
+sql_cursor.execute("select id,code from tweets_seals")
 for x in sql_cursor.fetchall():
-	print x
+	query = str(x[0])
+	value = str(x[1])
+	print query,value
+	written_ids.write('"%s","%s"\n' % (query,value))
+	tweets.update({'user.id':query},{'$push':{'codes':{'rumor':'seals/craft','code':value}}})
