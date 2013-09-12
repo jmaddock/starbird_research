@@ -338,7 +338,13 @@ def single_node_network(cur):
 
 	for y in edge_counter.most_common(100): 
 		result = '"%s","%s","%s"\n' % (node,y[0],y[1])
-		f.write(result)	 
+		f.write(result)	
+
+def is_duplicate(cur):
+	count = collections.Counter()
+	cur.execute("select id from tweets_girl_running order by id")
+	for row in cur.fetchall():
+		print row
 
 
 if __name__ == "__main__":
