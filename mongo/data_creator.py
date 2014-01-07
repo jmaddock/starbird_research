@@ -293,6 +293,16 @@ def single_node_network():
 		result = '"%s","%s","%s"\n' % (tag,y[0],y[1])
 		f.write(result)
 
+def get_tweets():
+        tags = ['cellular','network','mobile service','mobile phone','cell phone','cellphone','Cell network','cell service']
+        reg_tags = [re.compile(x, re.IGNORECASE) for x in tags]
+	title = "data/%cell_rumor.csv" % tag
+	f = open(title, 'w')	#create new csv
+        f.write('tweet id,tweet text')
+	for y in reg_tags:
+                raw_data = tweets.find({'text':y})
+                for z in raw_data:
+                        f.write('"%s",%d\n' % (z['user']['id'],z['text']))
 
 if __name__ == "__main__":
     key_word_counter()
