@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 from datetime import datetime
-import collections,re
+import collections,re,random
 
 client = MongoClient()
 db = client.boston
@@ -63,47 +63,62 @@ def unique_urls():
     #print 'title: ' + str(len(title))
 
 def url_repair():
+    # set up regex for finding links, counter, logging.  use http for now
     find_link = re.compile('http.*?\s', re.IGNORECASE)
     f = open('data/url_matches.csv','w')
     count = collections.Counter()
+    bad_links = []
+
+    # get all tweets with any number of known urls (1 through 6)
+    # if the count < number of http matches, add to "bad_urls"
+    # create a random sampling of 5000 tweets with bad_urls
     for x in range(7):
-        data = tweets.find({'counts.urls':(x)}).limit(1000)
+        data = tweets.find({'counts.urls':(x)})
         #data = tweets.find({'user.id':'4863301'})
         for y in data:
             urls = y['text'].count('http')
             if urls > y['counts']['urls']:
-                links = find_link.findall(y['text'])
-                links = [z.strip('\n').strip(' ').strip('...') for z in links]
-                known_links = [z['expanded_url'] for z in y['entities']['urls']]
-                result = [z for z in links if z not in known_links]
-                if len(links) - len(known_links) == len(result):
-                    print 'text: %s' % y['text']
-                    new_data = tweets.find_one({'text':(re.compile(y['text'])),
+                bad_links.append(y)
+    indexes = random.sample(xrange(0,len(bad_links)-1),5000)
+    sample = [bad_links[x] for x in indexes]
+    count.update({'bad links':len(bad_links),'sample size':len(sample)})
+
+    #
+    for y in sample:
+        links = find_link.findall(y['text'])
+        links = [z.strip('\n').strip(' ').strip('...') for z in links]
+        known_links = [z['expanded_url'] for z in y['entities']['urls']]
+        result = [z for z in links if z not in known_links]
+        if len(links) - len(known_links) == len(result):
+            print 'text: %s' % y['text']
+            new_data = tweets.find_one({'text':(re.compile(re.escape(y['text']))),
+                                        'counts.urls':len(links)})
+            try:
+                print 'matches: %s' % new_data['text']
+            except:
+                print 'matches: %s' % new_data
+                text = y['text']
+                links_strip = [z for z in links]
+                start_text = None
+                while new_data == None and start_text is not text:
+                    start_text = text
+                    text = text.rstrip('...').strip()
+                    if len(links_strip) > 0:
+                        text = text.rstrip(links_strip[-1]).strip().strip('...')
+                        links_strip.pop()
+                    text = re.sub('RT .*?:','',text).strip()
+                    new_data = tweets.find_one({'text':(re.compile(re.escape(text))),
                                                 'counts.urls':len(links)})
                     try:
-                        print 'matches: %s' % new_data['text']
+                        print 'matches: %s, %s' % (new_data['text'], text)
                     except:
-                        print 'matches: %s' % new_data
-                    text = y['text']
-                    links_strip = [z for z in links]
-                    start_text = None
-                    while new_data == None and start_text is not text:
-                        start_text = text
-                        text = text.rstrip('...').strip()
-                        if len(links_strip) > 0:
-                            text = text.rstrip(links_strip[-1]).strip().strip('...')
-                            links_strip.pop()
-                        text = re.sub('RT .*?:','',text).strip()
-                        new_data = tweets.find_one({'text':(re.compile(text)),
-                                                    'counts.urls':len(links)})
-                        try:
-                            print 'matches: %s, %s' % (new_data['text'], text)
-                        except:
-                            print 'matches: %s, %s' % (new_data, text)
-                    if new_data == None:
-                        count.update(['unmatched'])
-                    else:
-                        count.update(['matched'])
+                        print 'matches: %s, %s' % (new_data, text)
+            if new_data == None:
+                count.update(['unmatched'])
+            else:
+                count.update(['matched'])
+        else:
+            count.update(['uncaught'])
     print count
 
 if __name__ == "__main__":
