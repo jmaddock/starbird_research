@@ -16,29 +16,44 @@ def counts_entities_match():
     print count
 
 def url_regex_count():
-    count = 0
-    uncaught = 0
-    good = 0
+    uncounted = collections.Counter()
+    uncaught = collections.Counter()
+    good = collections.Counter()
+    total = collections.Counter()
     f = open('data/url_matches.csv','w')
     for x in range(7):
         reg_tag = re.compile('http', re.IGNORECASE)
-        data = tweets.find({'counts.urls':(x),'text':reg_tag})
-        for y in data:
+        data = tweets.find({'counts.urls':(x),
+                            'text':reg_tag,
+                            'codes.rumor':{'$exists':'true'}})
+        for i,y in enumerate(data):
             urls = y['text'].count('http')
             if urls > y['counts']['urls']:
-                count += 1
+                for z in y['codes']:
+                    uncounted.update([z['rumor']])
+                    total.update([z['rumor']])
                 try:
                     f.write('"%s","%s"\n' % (y['user']['id'],y['text']))
                 except:
                     f.write('"%s","%s"\n' % (y['user']['id'],'decode error'))
-                print y['text'],y['counts']['urls'],urls
             elif urls < y['counts']['urls']:
-                uncaught += 1
+                for z in y['codes']:
+                    uncaught.update([z['rumor']])
+                    total.update([z['rumor']])
             else:
-                good += 1
-    print 'uncounted urls: %i' % count
-    print 'uncaught urls: %i' % uncaught
-    print 'matched urls: %i' % good
+                for z in y['codes']:
+                    good.update([z['rumor']])
+                    total.update([z['rumor']])
+
+    f2 = open('data/url_stats.txt','w')
+    print 'uncounted urls: %s' % uncounted
+    f2.write('uncounted urls: "%s"\n' % uncounted)
+    print 'uncaught urls: %s' % uncaught
+    f2.write('uncaught urls: "%s"\n' % uncaught)
+    print 'matched urls: %s' % good
+    f2.write('good urls: "%s"\n' % good)
+    print 'total urls: %s' % total
+    f2.write('total urls: "%s"\n' % total)
 
 def unique_urls():
     url_count = collections.Counter()
@@ -73,7 +88,7 @@ def url_repair():
     # if the count < number of http matches, add to "bad_urls"
     # create a random sampling of 5000 tweets with bad_urls
     for x in range(7):
-        data = tweets.find({'counts.urls':(x)})
+        data = tweets.find({'counts.urls':(x),'code.rumor':{'$exists':'true'}})
         #data = tweets.find({'user.id':'4863301'})
         for y in data:
             urls = y['text'].count('http')
@@ -121,5 +136,18 @@ def url_repair():
             count.update(['uncaught'])
     print count
 
+def count_RT():
+    num_RT = collections.Counter()
+    reg1 = re.compile('rt @',re.IGNORECASE)
+    reg2 = re.compile('r @.*?\s',re.IGNORECASE)
+    reg3 = re.compile('via @.*?\s',re.IGNORECASE)
+    reg4 = re.compile('/"@.*?\s',re.IGNORECASE)
+    data = db.tweets.find({'codes.rumor':{'$exists':'true'},'text':reg1})
+    for x in data:
+        for y in x['codes']:
+            num_RT.update([y['rumor']])
+
+    print num_RT
+
 if __name__ == "__main__":
-    url_repair()
+    count_RT()
