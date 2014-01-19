@@ -4,8 +4,11 @@ import collections,re,random
 
 client = MongoClient()
 db = client.boston
-collection = db.tweets
-tweets = db.tweets
+collection = db.jfk
+tweets = db.jfk
+
+main_collection = db.tweets
+main_tweets = db.tweets
 
 def counts_entities_match():
     count = 0
@@ -79,8 +82,9 @@ def unique_urls():
 
 def url_repair():
     # set up regex for finding links, counter, logging.  use http for now
-    find_link = re.compile('http.*?\s', re.IGNORECASE)
-    f = open('data/url_matches.csv','w')
+    find_link = re.compile('http.*?\s|http.*?$', re.IGNORECASE)
+    f = open('data/url_matches_jfk.csv','w')
+    f.write('repaired tweet id,reference tweet id\n')
     count = collections.Counter()
     bad_links = []
 
@@ -88,53 +92,78 @@ def url_repair():
     # if the count < number of http matches, add to "bad_urls"
     # create a random sampling of 5000 tweets with bad_urls
     for x in range(7):
-        data = tweets.find({'counts.urls':(x),'code.rumor':{'$exists':'true'}})
+        data = tweets.find({'counts.urls':(x)})
         #data = tweets.find({'user.id':'4863301'})
         for y in data:
             urls = y['text'].count('http')
             if urls > y['counts']['urls']:
                 bad_links.append(y)
-    indexes = random.sample(xrange(0,len(bad_links)-1),5000)
-    sample = [bad_links[x] for x in indexes]
-    count.update({'bad links':len(bad_links),'sample size':len(sample)})
 
-    #
-    for y in sample:
+    # CODE FOR RANDOM SAMPLE
+    #indexes = random.sample(xrange(0,len(bad_links)-1),10)
+    #sample = [bad_links[x] for x in indexes]
+    #count.update({'bad links':len(bad_links),'sample size':len(sample)})
+
+    # CODE FOR COMPLETE SET
+    count.update({'bad links':len(bad_links)})
+    sample = bad_links
+
+    for i,y in enumerate(sample):
+        print (float(i)/len(sample))
         links = find_link.findall(y['text'])
-        links = [z.strip('\n').strip(' ').strip('...') for z in links]
+        links = [z.strip('\n').strip(' ').strip('...').strip(u'2026') for z in links]
         known_links = [z['expanded_url'] for z in y['entities']['urls']]
         result = [z for z in links if z not in known_links]
         if len(links) - len(known_links) == len(result):
-            print 'text: %s' % y['text']
-            new_data = tweets.find_one({'text':(re.compile(re.escape(y['text']))),
-                                        'counts.urls':len(links)})
+            #print 'text: %s' % y['text']
+            #print links
+            new_data = tweets.find({'text':(re.compile(re.escape(y['text']))),
+                                    'counts.urls':len(links)}).sort('created_ts',1).limit(1)
             try:
-                print 'matches: %s' % new_data['text']
+                new_data = new_data.next()
+                #print 'matches: %s' % new_data['text']
+                #print len(links)
             except:
-                print 'matches: %s' % new_data
+                #print 'matches: %s' % None
+                new_data = None
                 text = y['text']
                 links_strip = [z for z in links]
                 start_text = None
                 while new_data == None and start_text is not text:
                     start_text = text
                     text = text.rstrip('...').strip()
-                    if len(links_strip) > 0:
-                        text = text.rstrip(links_strip[-1]).strip().strip('...')
-                        links_strip.pop()
+                    #if len(links_strip) > 0:
+                    #    text = text.rstrip(links_strip[-1]).strip().strip('...')
+                    #    links_strip.pop()
                     text = re.sub('RT .*?:','',text).strip()
-                    new_data = tweets.find_one({'text':(re.compile(re.escape(text))),
-                                                'counts.urls':len(links)})
+                    text = re.sub('http.*?\s|http.*?$','',text).strip()
+                    #print text,len(links)
+                    new_data = tweets.find({'text':(re.compile(re.escape(text))),
+                                            'counts.urls':len(links)}).sort('created_ts',1).limit(1)
                     try:
-                        print 'matches: %s, %s' % (new_data['text'], text)
+                        new_data = new_data.next()
                     except:
-                        print 'matches: %s, %s' % (new_data, text)
+                        new_data = None
+                        #print 'matches: %s, %s' % (new_data, text)
             if new_data == None:
                 count.update(['unmatched'])
             else:
                 count.update(['matched'])
+                f.write('%s,%s\n' % (y['user']['id'],new_data['user']['id']))
+                for z in new_data['entities']['urls']:
+                    if z['expanded_url'] not in known_links:
+                        z['reconstructed'] = True
+                        #print z
+                        #main_tweets.update({'user.id':y['user']['id']},
+                        #                   {'$push':{'entities.urls':z}})
+                        main_tweets.update({'user.id':y['user']['id']},
+                                           {'$push':{'entities.urls':z}})
+                        main_tweets.update({'user.id':y['user']['id']},
+                                           {'$inc':{'counts.urls':1}})
         else:
             count.update(['uncaught'])
     print count
+    f.write('%s' % count)
 
 def count_RT():
     num_RT = collections.Counter()
@@ -150,4 +179,4 @@ def count_RT():
     print num_RT
 
 if __name__ == "__main__":
-    count_RT()
+    url_repair()
