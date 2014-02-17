@@ -16,9 +16,9 @@ class dbConnection(object):
             self.m_connections['new_boston'] = MongoClient(host=DB.mongo['host']).new_boston.tweets
 
     def create_sql_connections(self,sql_options=[]):
-        if 'boston' in sql_options:
+        for db_name in sql_options:
             sql_db = MySQLdb.connect(host=DB.sql['host'],
                                      user=DB.sql['user'],
                                      passwd=DB.sql['password'],
-                                     db=DB.sql['db'])
-            self.sql_connections['boston'] = sql_db.cursor()
+                                     db=db_name)
+            self.sql_connections[db_name] = sql_db.cursor()
