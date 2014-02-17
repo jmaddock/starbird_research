@@ -55,23 +55,23 @@ def code_update(mongodb,sqldb,table,rumor):
     print mongodb,sqldb
     db.create_mongo_connections(mongo_options=[mongodb])
     db.create_sql_connections(sql_options=[sqldb])
-    written_ids = open('written_ids_proposal.txt','w')
+    written_ids = open('girl_running_update_log.txt','w')
 
     #sql db query
     query = "select id,code from %s" % table
-    db.sql_connections['girl_running'].execute(query)
+    db.sql_connections[sqldb].execute(query)
 
-    for x in db.sql_connections['girl_running'].fetchall():
+    for x in db.sql_connections[sqldb].fetchall():
         query = str(x[0])
         value = str(x[1])
         print query,value
         written_ids.write('"%s","%s"\n' % (query,value))
-        db.m_connections['boston'].update({'user.id':query,
+        db.m_connections[mongodb].update({'user.id':query,
                                            'codes.rumor':rumor},
                                           {'$set':{'codes.$.code':value,}})
 
 if __name__ == "__main__":
-    code_update(mongodb='boston',
+    code_update(mongodb='new_boston',
                 sqldb='girl_running',
                 table='tweets_girl_running',
                 rumor='girl running')
