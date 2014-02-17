@@ -50,6 +50,25 @@ def place_code_import(mongodb,sqldb):
                           }
                       })
 
+def code_update(mongodb,sqldb,rumor):
+    db = dbConnection()
+    print mongodb,sqldb
+    db.create_mongo_connections(mongo_options=[mongodb])
+    db.create_sql_connections(sql_options=[sqldb])
+    written_ids = open('written_ids_proposal.txt','w')
+
+    #sql db query
+    query = "select id,code from %s" % sqldb
+    db.sql_connections['boston'].execute(query)
+
+    for x in db.sql_connection['boston'].fetchall():
+        query = str(x[0])
+        value = str(x[1])
+        print query,value
+        written_ids.write('"%s","%s"\n' % (query,value))
+        tweets.update({'user.id':query,
+                       'codes.rumor':rumor},
+                      {'$set':{'codes.$.code':value,}})
 
 if __name__ == "__main__":
     place_code_import(mongodb='new_boston',sqldb='boston')

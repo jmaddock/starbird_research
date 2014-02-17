@@ -4,8 +4,8 @@ import collections,re,random
 
 client = MongoClient()
 db = client.boston
-collection = db.jfk
-tweets = db.jfk
+collection = db.tweets
+tweets = db.tweets
 
 main_collection = db.tweets
 main_tweets = db.tweets
@@ -165,6 +165,30 @@ def url_repair():
     print count
     f.write('%s' % count)
 
+def long_url_repair():
+    # set up regex for finding links, counter, logging.  use http for now
+    find_link = re.compile('http.*?\s|http.*?$', re.IGNORECASE)
+    f = open('data/url_matches_jfk.csv','w')
+    f.write('repaired tweet id,reference tweet id\n')
+    count = collections.Counter()
+    bad_links = []
+    bad_tweets = []
+
+    # get all tweets with any number of known urls (1 through 6)
+    # if the count < number of http matches, add to "bad_urls"
+    # create a random sampling of 5000 tweets with bad_urls
+    data = tweets.find({'counts.urls':{'$gte':1}})
+    for x in data:
+        for y in x['entities']['urls']:
+            try:
+                if y['long-url'] == y['expanded_url']:
+                    bad_links.append(x)
+            except:
+                bad_tweets.append(x)
+
+    #data = tweets.find({'user.id':'4863301'})
+    print len(bad_tweets),len(bad_links)
+
 def count_RT():
     num_RT = collections.Counter()
     reg1 = re.compile('rt @',re.IGNORECASE)
@@ -179,4 +203,4 @@ def count_RT():
     print num_RT
 
 if __name__ == "__main__":
-    url_repair()
+    long_url_repair()
