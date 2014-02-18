@@ -6,7 +6,7 @@ def rumor_over_time(db_name,rumor):
     db = dbConnection()
     db.create_mongo_connections(mongo_options=[db_name])
 
-    title = "data/%s_over_time.csv" % rumor
+    title = "data/%s_over_time.csv" % rumor.replace('/','_')
     f = open(title, 'w')
 
     f.write('time,misinfo,correction,unrelated/neutral/other\n')
