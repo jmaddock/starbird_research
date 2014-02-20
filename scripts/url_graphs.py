@@ -43,7 +43,7 @@ def url_by_domain_counter(db_name,rumor):
 def main():
     rumors = ['girl running','sunil','seals/craft','cell phone','proposal','jfk']
     for x in rumors:
-        url_by_domain_counter(db_name='new_boston',rumor=x)
+        url_by_domain_counter(db_name='new_boston',rumor=x
 
-if __name__ == "__main__":
+if) __name__ == "__main__":
     main()
