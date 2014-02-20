@@ -1,13 +1,15 @@
 from connection import dbConnection
 from collections import Counter
 from datetime import datetime
+import utils
 
 def rumor_over_time(db_name,rumor,gran):
     db = dbConnection()
     db.create_mongo_connections(mongo_options=[db_name])
 
-    title = "data/%s_over_time.csv" % rumor.replace('/','_')
-    f = open(title, 'w')
+    title = "%s_over_time.csv" % rumor.replace('/','_')
+    fpath = utils.write_to_data(path=title)
+    f = open(fpath, 'w')
     if gran:
         f.write('time,misinfo,correction,speculation,hedge,question,unrelated/neutral/other\n')
     else:
@@ -30,6 +32,7 @@ def rumor_over_time(db_name,rumor,gran):
                 },{
                     "codes.code":1
                 })
+                result = ''
                 for x in raw_data:
                     count.update([x['codes'][0]['code']])
 
@@ -56,7 +59,7 @@ def rumor_over_time(db_name,rumor,gran):
                                                       correction,
                                                       other)
 
-                    f.write(result)
+                f.write(result)
 
 def main():
     rumors = ['girl running','sunil','seals/craft','cell phone','proposal','jfk']
