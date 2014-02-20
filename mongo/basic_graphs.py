@@ -30,6 +30,7 @@ def rumor_over_time(db_name,rumor,gran):
                 },{
                     "codes.code":1
                 })
+                result = ''
                 for x in raw_data:
                     count.update([x['codes'][0]['code']])
 
@@ -56,7 +57,7 @@ def rumor_over_time(db_name,rumor,gran):
                                                       correction,
                                                       other)
 
-                    f.write(result)
+                f.write(result)
 
 def main():
     rumors = ['girl running','sunil','seals/craft','cell phone','proposal','jfk']
