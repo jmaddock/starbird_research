@@ -61,7 +61,7 @@ def _rumor_over_time(db_name,rumor,gran,fname):
 
                 f.write(result)
 
-def _text_by_time(db_name,rumor,fname,start_time,end_time):
+def _text_by_time(db_name,rumor,fname,start_time,end_time,code):
     db = dbConnection()
     db.create_mongo_connections(mongo_options=[db_name])
 
@@ -71,12 +71,13 @@ def _text_by_time(db_name,rumor,fname,start_time,end_time):
     f.write('time,rumor text\n')
 
     raw_data = db.m_connections[db_name].find({
-                    "created_ts":{
-                        "$gte":dateStart,
-                        "$lte":dateEnd
-                    },
-                    "codes.rumor":rumor
-                })
+        "created_ts":{
+            "$gte":dateStart,
+            "$lte":dateEnd
+        },
+        "codes.rumor":rumor,
+        "codes.code":code
+    })
 
     for x in raw_data:
         result = '"%s","%s\n"' % (x['created_at'],x['text'])
@@ -87,6 +88,8 @@ def text_by_time():
     fname_in = raw_input('>> ')
     print 'enter a rumor:'
     rumor_in = raw_input('>> ')
+    print 'enter a code:'
+    code_in = raw_input('>> ')
     print 'enter a day (15 through 22):'
     day = int(raw_input('>> '))
     print 'enter an hour (0 through 23):'
@@ -100,7 +103,8 @@ def text_by_time():
                   rumor=rumor_in,
                   fname=fname_in,
                   start_time=dateStart,
-                  end_time=dateEnd)
+                  end_time=dateEnd,
+                  code=code_in)
 
 def rumor_over_time():
     rumors = ['girl running','sunil','seals/craft','cell phone','proposal','jfk']
