@@ -3,11 +3,11 @@ from collections import Counter
 from datetime import datetime
 import utils
 
-def rumor_over_time(db_name,rumor,gran):
+def _rumor_over_time(db_name,rumor,gran,fname):
     db = dbConnection()
     db.create_mongo_connections(mongo_options=[db_name])
 
-    title = "%s_over_time.csv" % rumor.replace('/','_')
+    title = "%s_%s.csv" % (rumor.replace('/','_'), fname)
     fpath = utils.write_to_data(path=title)
     f = open(fpath, 'w')
     if gran:
@@ -34,8 +34,8 @@ def rumor_over_time(db_name,rumor,gran):
                 })
                 result = ''
                 for x in raw_data:
-                    count.update([x['codes'][0]['code']])
-
+                    count.update([x['codes'][0]['code']]
+)
                     if gran:
                         misinfo = count['misinfo']
                         speculation = count['speculation']
@@ -108,9 +108,63 @@ def top_urls(db_name):
     for x in count.most_common(100):
         print x
 
+def _text_by_time(db_name,rumor,fname,start_time,end_time,code):
+    db = dbConnection()
+    db.create_mongo_connections(mongo_options=[db_name])
+
+    title = "%s_%s.csv" % (rumor.replace('/','_'), fname)
+    fpath = utils.write_to_data(path=title)
+    f = open(fpath, 'w')
+    f.write('time,rumor text\n')
+
+    raw_data = db.m_connections[db_name].find({
+        "created_ts":{
+            "$gte":dateStart,
+            "$lte":dateEnd
+        },
+        "codes.rumor":rumor,
+        "codes.code":code
+    })
+
+    for x in raw_data:
+        result = '"%s","%s\n"' % (x['created_at'],x['text'])
+        f.write(result)
+
+def text_by_time():
+    print 'enter a valid file name:'
+    fname_in = raw_input('>> ')
+    print 'enter a rumor:'
+    rumor_in = raw_input('>> ')
+    print 'enter a code:'
+    code_in = raw_input('>> ')
+    print 'enter a day (15 through 22):'
+    day = int(raw_input('>> '))
+    print 'enter an hour (0 through 23):'
+    minute = int(raw_input('>> '))
+    print 'enter a minute (0 through 58):'
+    second = raw_input('>> ')
+    dateStart = datetime(2013,04,day,hour,minute)
+    dateEnd = datetime(2013,04,day,hour,minute,59)
+
+    _text_by_time(db_name='new_boston',
+                  rumor=rumor_in,
+                  fname=fname_in,
+                  start_time=dateStart,
+                  end_time=dateEnd,
+                  code=code_in)
+
+def rumor_over_time():
+    rumors = ['girl running','sunil','seals/craft','cell phone','proposal','jfk']
+
+    print 'enter a valid file name:'
+    user_in = raw_input('>> ')
+
+    for x in rumors:
+        _rumor_over_time(db_name='new_boston',rumor=x,gran=True,fname=user_in)
+
 def main():
     rumors = ['girl running','sunil','seals/craft','cell phone','proposal','jfk']
     top_urls(db_name='iconference')
 
 if __name__ == "__main__":
-    main()
+    rumor_over_time()
