@@ -61,10 +61,56 @@ def rumor_over_time(db_name,rumor,gran):
 
                 f.write(result)
 
+def top_hashtags(db_name):
+    db = dbConnection()
+    db.create_mongo_connections(mongo_options=[db_name])
+
+    title = "iconf_top_hashtags.csv"
+    fpath = utils.write_to_data(path=title)
+    f = open(fpath, 'w')
+    f.write('name,count\n')
+
+    data = db.m_connections[db_name].find({
+        'counts.hashtags':{
+            '$gt':0
+        }
+    })
+
+    count = Counter()
+
+    for x in data:
+        count.update(x['hashtags'])
+
+    for x in count.most_common(100):
+        print x
+
+def top_urls(db_name):
+    db = dbConnection()
+    db.create_mongo_connections(mongo_options=[db_name])
+
+    title = "iconf_top_hashtags.csv"
+    fpath = utils.write_to_data(path=title)
+    f = open(fpath, 'w')
+    f.write('name,count\n')
+
+    data = db.m_connections[db_name].find({
+        'counts.urls':{
+            '$gt':0
+        }
+    })
+
+    count = Counter()
+
+    for x in data:
+        for y in x['entities']['urls']:
+            count.update([y['expanded_url']])
+
+    for x in count.most_common(100):
+        print x
+
 def main():
     rumors = ['girl running','sunil','seals/craft','cell phone','proposal','jfk']
-    for x in rumors:
-        rumor_over_time(db_name='new_boston',rumor=x,gran=True)
+    top_urls(db_name='iconference')
 
 if __name__ == "__main__":
     main()
